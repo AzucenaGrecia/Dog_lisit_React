@@ -55,3 +55,11 @@
   height: 40px;
   padding: 8px;
 }
+
+.loading{
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

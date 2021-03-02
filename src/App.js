@@ -1,25 +1,30 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import Loading from "./loading";
 
 function App() {
   const [dogs, setDogsList] = useState([]);
   const [breeds, setBreedList] = useState([]);
-  const [currentBreed, setCurrentBreed] = useState('all')
+  const [currentBreed, setCurrentBreed] = useState("all");
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchDogs = async () => {
-      if(currentBreed === 'all') {
+      setLoading(true)
+      if (currentBreed === "all") {
         const response = await fetch(
           "https://dog.ceo/api/breeds/image/random/10"
         );
         const data = await response.json();
         setDogsList(data.message);
+        setLoading(false)
       } else {
         const response = await fetch(
           `https://dog.ceo/api/breed/${currentBreed}/images/random/10`
         );
         const data = await response.json();
         setDogsList(data.message);
+        setLoading(false)
       }
     };
     fetchDogs();
@@ -34,16 +39,6 @@ function App() {
     fetchBreeds();
   }, []);
 
-  // const handleChange = async (e) => {
-  //   console.log(e.target.value)
-  
-  //   const response = await fetch(
-  //     `https://dog.ceo/api/breed/${e.target.value}/images/random/10`
-  //   );
-  //   const data = await response.json();
-  //   setDogsList(data.message);
-  // };
-
   return (
     <div className="App">
       <header className="App-header">
@@ -54,7 +49,12 @@ function App() {
       <label htmlFor="breed" style={{ marginRight: "5px" }}>
         Breed:
       </label>
-      <select id="breed" className="select" onChange={(e) => setCurrentBreed(e.target.value)}>
+
+      <select
+        id="breed"
+        className="select"
+        onChange={(e) => setCurrentBreed(e.target.value)}
+      >
         <option selected value="all">
           Choose a Breed
         </option>
@@ -64,11 +64,16 @@ function App() {
           </option>
         ))}
       </select>
-      <div className="gallery">
-        {dogs.map((dog, index) => (
-          <img key={index} src={dog} style={{ width: "100%" }} />
-        ))}
-      </div>
+
+      {loading ? (
+        <Loading />
+      ) : (
+        <div className="gallery">
+          {dogs.map((dog, index) => (
+            <img key={index} src={dog} style={{ width: "100%" }} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
