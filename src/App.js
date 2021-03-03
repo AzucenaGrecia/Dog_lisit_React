@@ -1,43 +1,63 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import Loading from "./loading";
+import ErrorMessage from "./errorMessage";
 
 function App() {
   const [dogs, setDogsList] = useState([]);
-  const [breeds, setBreedList] = useState([]);
-  const [currentBreed, setCurrentBreed] = useState("all");
-  const [loading, setLoading] = useState(true)
+  const [currentBreed, setCurrentBreed] = useState("");
+  const [state, setState] = useState("loading");
 
   useEffect(() => {
     const fetchDogs = async () => {
-      setLoading(true)
-      if (currentBreed === "all") {
-        const response = await fetch(
-          "https://dog.ceo/api/breeds/image/random/10"
-        );
-        const data = await response.json();
-        setDogsList(data.message);
-        setLoading(false)
-      } else {
-        const response = await fetch(
-          `https://dog.ceo/api/breed/${currentBreed}/images/random/10`
-        );
-        const data = await response.json();
-        setDogsList(data.message);
-        setLoading(false)
+      try {
+        setState("loading");
+        if (currentBreed === "") {
+          const response = await fetch(
+            "https://dog.ceo/api/breeds/image/random/10"
+          );
+          const data = await response.json();
+          setDogsList(data.message);
+          setState("success");
+        } else {
+          const response = await fetch(
+            `https://dog.ceo/api/breed/${currentBreed}/images/random/10`
+          );
+          const data = await response.json();
+          if (data.status === "error") throw new Error(data.message);
+          setDogsList(data.message);
+          setState("success");
+        }
+      } catch (e) {
+        console.log(e);
+        setState("error");
       }
     };
-    fetchDogs();
+    const timer = setTimeout(() => fetchDogs(), 1000);
+    return () => clearTimeout(timer);
   }, [currentBreed]);
 
-  useEffect(() => {
-    const fetchBreeds = async () => {
-      const response = await fetch("https://dog.ceo/api/breeds/list/all");
-      const data = await response.json();
-      setBreedList(Object.keys(data.message));
-    };
-    fetchBreeds();
-  }, []);
+  const renderDogs = () => {
+    switch (state) {
+      case "error":
+        return <ErrorMessage />;
+      case "success":
+        return (
+          <div className="gallery">
+            {dogs.map((dog, index) => (
+              <img
+                key={index}
+                src={dog}
+                style={{ width: "100%" }}
+                alt="breed"
+              />
+            ))}
+          </div>
+        );
+      default:
+        return <Loading />;
+    }
+  };
 
   return (
     <div className="App">
@@ -50,30 +70,13 @@ function App() {
         Breed:
       </label>
 
-      <select
+      <input
         id="breed"
-        className="select"
+        type="text"
         onChange={(e) => setCurrentBreed(e.target.value)}
-      >
-        <option selected value="all">
-          Choose a Breed
-        </option>
-        {breeds.map((breed, index) => (
-          <option className="option" value={breed} key={index}>
-            {breed}
-          </option>
-        ))}
-      </select>
-
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="gallery">
-          {dogs.map((dog, index) => (
-            <img key={index} src={dog} style={{ width: "100%" }} />
-          ))}
-        </div>
-      )}
+        placeholder="write a breed..."
+      />
+      {renderDogs()}
     </div>
   );
 }
