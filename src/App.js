@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import Loading from "./loading";
 import ErrorMessage from "./errorMessage";
+import { ImageModal } from "./imageModal";
 
 function App() {
   const [dogs, setDogsList] = useState([]);
   const [currentBreed, setCurrentBreed] = useState("");
   const [state, setState] = useState("loading");
+  const [selectDog, setSelectDog] = useState("");
 
   useEffect(() => {
     const fetchDogs = async () => {
@@ -50,8 +52,10 @@ function App() {
                 src={dog}
                 style={{ width: "100%" }}
                 alt="breed"
+                onClick={(e) => setSelectDog(e.target.currentSrc)}
               />
             ))}
+            {selectDog && <ImageModal image={selectDog} setSelectDog={setSelectDog} />}
           </div>
         );
       default:
